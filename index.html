@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>顧問先向け｜動画戦略ヒアリングシート</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Montserrat:wght@700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: {
+                            800: '#0a192f',
+                            900: '#0f172a',
+                        },
+                        gold: {
+                            400: '#d4af37',
+                            500: '#b8962e',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['"Noto Sans JP"', 'sans-serif'],
+                        montserrat: ['"Montserrat"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #f8fafc;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            height: 300px;
+        }
+        .form-section {
+            transition: all 0.3s ease;
+        }
+        .form-section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .advisor-tip {
+            border-left: 4px solid #d4af37;
+            background-color: #fffbeb;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased">
+
+    <!-- Chosen Palette: Navy & Gold (Professional/Trustworthy) -->
+    <!-- Application Structure Plan: 
+         - Header: Branding and Purpose.
+         - Dashboard (Sticky/Top): Progress bar and Radar Chart visualization of the strategy balance.
+         - Main Content: Accordion/Card-style form sections corresponding to the source markdown.
+         - Interactions: Real-time chart updates on input, "Advisor Tips" toggle, "Generate Report" modal.
+         - Why: To gamify the reflection process and provide immediate visual feedback on the "completeness" of their strategic thinking.
+    -->
+
+    <!-- Navigation / Header -->
+    <header class="bg-navy-900 text-white sticky top-0 z-50 shadow-lg">
+        <div class="max-width-container mx-auto px-4 py-4 flex justify-between items-center max-w-7xl">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-pen-nib text-gold-400 text-2xl"></i>
+                <div>
+                    <h1 class="font-montserrat font-bold text-lg tracking-wider">STRATEGY SHEET</h1>
+                    <p class="text-xs text-slate-400">想いを整理し、正しく伝えるための質問</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="text-right hidden sm:block">
+                    <p class="text-xs text-gold-400 font-bold">入力進捗</p>
+                    <div class="w-32 bg-slate-700 rounded-full h-2 mt-1">
+                        <div id="progressBar" class="bg-gold-400 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+                <button onclick="app.generateReport()" class="bg-gold-400 hover:bg-gold-500 text-navy-900 font-bold py-2 px-4 rounded shadow transition-colors text-sm">
+                    <i class="fa-solid fa-file-export mr-2"></i>シート出力
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Left Column: Form Sections -->
+        <div class="lg:col-span-8 space-y-8">
+            
+            <!-- Introduction Card -->
+            <div class="bg-white rounded-xl shadow p-6 border-l-4 border-navy-800">
+                <h2 class="text-xl font-bold text-navy-900 mb-2">はじめに</h2>
+                <p class="text-slate-600 leading-relaxed">
+                    ご記入いただきありがとうございます。<br>
+                    このシートは、単なる「動画の打ち合わせ」ではなく、社長が大切にされている<strong class="text-gold-500">「商売の本質」</strong>を整理するためのものです。<br>
+                    うまく書こうとせず、ありのままの想いをお聞かせください。
+                </p>
+            </div>
+
+            <!-- Section 1: Basic Info -->
+            <div class="form-section bg-white rounded-xl shadow p-6" id="sec-basic">
+                <div class="flex items-center gap-3 mb-6 border-b pb-4 border-slate-100">
+                    <span class="bg-navy-100 text-navy-800 font-bold px-3 py-1 rounded">01</span>
+                    <h3 class="text-lg font-bold text-navy-900">基本情報</h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">会社名</label>
+                        <input type="text" data-category="basic" class="w-full bg-slate-50 border border-slate-300 rounded px-4 py-2 focus:outline-none focus:border-gold-400 transition-colors" placeholder="貴社名を入力">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">ご担当者名（役職）</label>
+                        <input type="text" data-category="basic" class="w-full bg-slate-50 border border-slate-300 rounded px-4 py-2 focus:outline-none focus:border-gold-400 transition-colors" placeholder="お名前と役職">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-slate-700 mb-2">事業内容（できるだけ簡単に）</label>
+                        <input type="text" data-category="basic" class="w-full bg-slate-50 border border-slate-300 rounded px-4 py-2 focus:outline-none focus:border-gold-400 transition-colors" placeholder="例：地域密着型の注文住宅の設計・施工">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-slate-700 mb-2">主な顧客層</label>
+                        <input type="text" data-category="basic" class="w-full bg-slate-50 border border-slate-300 rounded px-4 py-2 focus:outline-none focus:border-gold-400 transition-colors" placeholder="例：30代〜40代の子育て世帯・市内全域">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Challenges -->
+            <div class="form-section bg-white rounded-xl shadow p-6" id="sec-challenges">
+                <div class="flex items-center gap-3 mb-6 border-b pb-4 border-slate-100">
+                    <span class="bg-navy-100 text-navy-800 font-bold px-3 py-1 rounded">02</span>
+                    <h3 class="text-lg font-bold text-navy-900">今、感じている課題（最重要）</h3>
+                </div>
+                <p class="text-sm text-slate-600 mb-4">※ 正解はありません。直感でお答えください。（複数選択可）</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="challengeChecks">
+                    <!-- Checkboxes generated by JS or static -->
+                    <label class="flex items-center p-3 border rounded cursor-pointer hover:bg-slate-50 transition">
+                        <input type="checkbox" value="売上が伸び悩んでいる" class="form-checkbox h-5 w-5 text-gold-400 rounded focus:ring-gold-400" onchange="app.updateChart()">
+                        <span class="ml-2 text-slate-700">売上が伸び悩んでいる</span>
+                    </label>
+                    <label class="flex items-center p-3 border rounded cursor-pointer hover:bg-slate-50 transition">
+                        <input type="checkbox" value="集客が安定しない" class="form-checkbox h-5 w-5 text-gold-400 rounded focus:ring-gold-400" onchange="app.updateChart()">
+                        <span class="ml-2 text-slate-700">集客が安定しない</span>
+                    </label>
+                    <label class="flex items-center p-3 border rounded cursor-pointer hover:bg-slate-50 transition">
+                        <input type="checkbox" value="価格で比較されてしまう" class="form-checkbox h-5 w-5 text-gold-400 rounded focus:ring-gold-400" onchange="app.updateChart()">
+                        <span class="ml-2 text-slate-700">価格で比較されてしまう</span>
+                    </label>
+                    <label class="flex items-center p-3 border rounded cursor-pointer hover:bg-slate-50 transition">
+                        <input type="checkbox" value="採用が難しい／定着しない" class="form-checkbox h-5 w-5 text-gold-400 rounded focus:ring-gold-400" onchange="app.updateChart()">
+                        <span class="ml-2 text-slate-700">採用が難しい／定着しない</span>
+                    </label>
+                    <label class="flex items-center p-3 border rounded cursor-pointer hover:bg-slate-50 transition">
+                        <input type="checkbox" value="事業の強みが伝わっていない" class="form-checkbox h-5 w-5 text-gold-400 rounded focus:ring-gold-400" onchange="app.updateChart()">
+                        <span class="ml-2 text-slate-700">事業の強みが伝わっていない</span>
+                    </label>
+                    <label class="flex items-center p-3 border rounded cursor-pointer hover:bg-slate-50 transition">
+                        <input type="checkbox" value="その他" class="form-checkbox h-5 w-5 text-gold-400 rounded focus:ring-gold-400" onchange="app.updateChart()">
+                        <span class="ml-2 text-slate-700">その他</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Section 3: Why Video -->
+            <div class="form-section bg-white rounded-xl shadow p-6">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="bg-navy-100 text-navy-800 font-bold px-3 py-1 rounded">03</span>
+                    <h3 class="text-lg font-bold text-navy-900">なぜ「動画」に興味を持ちましたか？</h3>
+                </div>
+                <div class="advisor-tip p-3 rounded mb-4 text-sm text-slate-700">
+                    <i class="fa-regular fa-lightbulb text-gold-500 mr-2"></i>
+                    ここは<strong>「課題の言語化ゾーン」</strong>です。うまく話せなくてOK！
+                </div>
+                <textarea data-category="issues" class="w-full bg-slate-50 border border-slate-300 rounded px-4 py-3 h-24 focus:outline-none focus:border-gold-400 transition-colors" placeholder="きっかけや、解決したいことを自由にお書きください"></textarea>
+            </div>
+
+            <!-- Section 4: The Core -->
+            <div class="form-section bg-white rounded-xl shadow p-6">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="bg-navy-100 text-navy-800 font-bold px-3 py-1 rounded">04</span>
+                    <h3 class="text-lg font-bold text-navy-900">実は、あまり人に言っていないこと</h3>
+                </div>
+                <div class="advisor-tip p-3 rounded mb-4 text-sm text-slate-700">
+                    <i class="fa-solid fa-star text-gold-500 mr-2"></i>
+                    ここが<strong>「伸びる動画のネタ（核）」</strong>になります。
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">同業他社と比べて「ここはちゃんとやっている」と思うことは？</label>
+                        <textarea data-category="uniqueness" class="w-full bg-slate-50 border border-slate-300 rounded px-4 py-3 h-24 focus:outline-none focus:border-gold-400 transition-colors" placeholder="例：効率より丁寧さを優先している、実は素材に〇〇を使っている..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">逆に、業界全体で「これは違う（おかしい）」と感じていることは？</label>
+                        <textarea data-category="uniqueness" class="w-full bg-slate-50 border border-slate-300 rounded px-4 py-3 h-24 focus:outline-none focus:border-gold-400 transition-colors" placeholder="例：安売り競争でお客様を見ていない、説明が専門用語ばかり..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 5: Beliefs -->
+            <div class="form-section bg-white rounded-xl shadow p-6">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="bg-navy-100 text-navy-800 font-bold px-3 py-1 rounded">05</span>
+                    <h3 class="text-lg font-bold text-navy-900">なぜ、その仕事をしているのか（信念）</h3>
+                </div>
+                <div class="advisor-tip p-3 rounded mb-4 text-sm text-slate-700">
+                    <i class="fa-solid fa-heart text-gold-500 mr-2"></i>
+                    売上・規模の話でなくてOK。<strong>感情的なエピソード（原体験）</strong>は大歓迎です。
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">そもそも、なぜ今の事業を始めたのですか？</label>
+                        <textarea data-category="belief" class="w-full bg-slate-50 border border-slate-300 rounded px-4 py-3 h-24 focus:outline-none focus:border-gold-400 transition-colors" placeholder="創業のきっかけや当時の想い..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">困難があっても、続けている理由は何ですか？</label>
+                        <textarea data-category="belief" class="w-full bg-slate-50 border border-slate-300 rounded px-4 py-3 h-24 focus:outline-none focus:border-gold-400 transition-colors" placeholder="お客様の笑顔、使命感など..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 6: Values -->
+            <div class="form-section bg-white rounded-xl shadow p-6">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="bg-navy-100 text-navy-800 font-bold px-3 py-1 rounded">06</span>
+                    <h3 class="text-lg font-bold text-navy-900">お客様と向き合うときに大切にしていること</h3>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">「これだけは外せない（譲れない）」と思っていることは？</label>
+                        <textarea data-category="customer" class="w-full bg-slate-50 border border-slate-300 rounded px-4 py-3 h-24 focus:outline-none focus:border-gold-400 transition-colors"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">お客様に、どんな風に感じてもらえたら嬉しいですか？</label>
+                        <textarea data-category="customer" class="w-full bg-slate-50 border border-slate-300 rounded px-4 py-3 h-24 focus:outline-none focus:border-gold-400 transition-colors"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 7: Customers -->
+            <div class="form-section bg-white rounded-xl shadow p-6">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="bg-navy-100 text-navy-800 font-bold px-3 py-1 rounded">07</span>
+                    <h3 class="text-lg font-bold text-navy-900">実際のお客様について</h3>
+                </div>
+                <div class="advisor-tip p-3 rounded mb-4 text-sm text-slate-700">
+                    <i class="fa-solid fa-filter text-gold-500 mr-2"></i>
+                    これは<strong>ミスマッチを減らし</strong>、理想のお客様だけを集めるための質問です。
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">よくあるお客様の悩み・不安は何ですか？</label>
+                        <textarea data-category="customer" class="w-full bg-slate-50 border border-slate-300 rounded px-4 py-3 h-24 focus:outline-none focus:border-gold-400 transition-colors"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">「こういうお客様とは、正直合わない」と感じるのはどんな方ですか？</label>
+                        <textarea data-category="customer" class="w-full bg-slate-50 border border-slate-300 rounded px-4 py-3 h-24 focus:outline-none focus:border-gold-400 transition-colors"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 8: Hiring -->
+            <div class="form-section bg-white rounded-xl shadow p-6">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="bg-navy-100 text-navy-800 font-bold px-3 py-1 rounded">08</span>
+                    <h3 class="text-lg font-bold text-navy-900">採用・社内向け（該当する場合）</h3>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">今後、採用で伝えていきたいことはありますか？</label>
+                        <textarea data-category="vision" class="w-full bg-slate-50 border border-slate-300 rounded px-4 py-3 h-24 focus:outline-none focus:border-gold-400 transition-colors"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">一緒に働く人に、どんな価値観を持ってほしいですか？</label>
+                        <textarea data-category="vision" class="w-full bg-slate-50 border border-slate-300 rounded px-4 py-3 h-24 focus:outline-none focus:border-gold-400 transition-colors"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 9: Success Definition -->
+            <div class="form-section bg-white rounded-xl shadow p-6">
+                <div class="flex items-center gap-3 mb-6 border-b pb-4 border-slate-100">
+                    <span class="bg-navy-100 text-navy-800 font-bold px-3 py-1 rounded">09</span>
+                    <h3 class="text-lg font-bold text-navy-900">動画で“伝わったら成功”な状態</h3>
+                </div>
+                <p class="text-sm text-slate-600 mb-4">この動画を見た人に「どう思われたら成功」だと思いますか？</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="successChecks">
+                     <label class="flex items-center p-3 border rounded cursor-pointer hover:bg-slate-50 transition">
+                        <input type="checkbox" value="信頼できそう" class="form-checkbox h-5 w-5 text-gold-400 rounded focus:ring-gold-400" onchange="app.updateChart()">
+                        <span class="ml-2 text-slate-700">信頼できそう</span>
+                    </label>
+                    <label class="flex items-center p-3 border rounded cursor-pointer hover:bg-slate-50 transition">
+                        <input type="checkbox" value="話を聞いてみたい" class="form-checkbox h-5 w-5 text-gold-400 rounded focus:ring-gold-400" onchange="app.updateChart()">
+                        <span class="ml-2 text-slate-700">話を聞いてみたい</span>
+                    </label>
+                    <label class="flex items-center p-3 border rounded cursor-pointer hover:bg-slate-50 transition">
+                        <input type="checkbox" value="他と違いそう" class="form-checkbox h-5 w-5 text-gold-400 rounded focus:ring-gold-400" onchange="app.updateChart()">
+                        <span class="ml-2 text-slate-700">他と違いそう</span>
+                    </label>
+                    <label class="flex items-center p-3 border rounded cursor-pointer hover:bg-slate-50 transition">
+                        <input type="checkbox" value="ちゃんとしていそう" class="form-checkbox h-5 w-5 text-gold-400 rounded focus:ring-gold-400" onchange="app.updateChart()">
+                        <span class="ml-2 text-slate-700">ちゃんとしていそう</span>
+                    </label>
+                    <label class="flex items-center p-3 border rounded cursor-pointer hover:bg-slate-50 transition">
+                        <input type="checkbox" value="人柄が伝わった" class="form-checkbox h-5 w-5 text-gold-400 rounded focus:ring-gold-400" onchange="app.updateChart()">
+                        <span class="ml-2 text-slate-700">人柄が伝わった</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Section 10: Final Message -->
+            <div class="form-section bg-white rounded-xl shadow p-6 border-b-4 border-gold-400">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="bg-navy-100 text-navy-800 font-bold px-3 py-1 rounded">10</span>
+                    <h3 class="text-lg font-bold text-navy-900">最後に</h3>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">今回の動画で「もし1つだけ伝えられるとしたら」何を伝えたいですか？</label>
+                    <textarea data-category="vision" class="w-full bg-slate-50 border border-slate-300 rounded px-4 py-3 h-24 focus:outline-none focus:border-gold-400 transition-colors"></textarea>
+                </div>
+            </div>
+            
+            <div class="text-center py-4">
+                <p class="text-slate-500 text-sm">ご記入ありがとうございました。<br>この内容を元に、社長の想いを「最強の資産」に変える準備を進めます。</p>
+            </div>
+
+        </div>
+
+        <!-- Right Column: Visualization & Sticky Stats -->
+        <div class="lg:col-span-4 space-y-8">
+            <div class="sticky top-24 space-y-6">
+                
+                <!-- Chart Card -->
+                <div class="bg-white rounded-xl shadow p-6">
+                    <h3 class="text-lg font-bold text-navy-900 mb-4 border-b pb-2">戦略の解像度</h3>
+                    <div class="chart-container">
+                        <canvas id="strategyChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-xs text-slate-500 text-center">
+                        <p>入力内容に応じてグラフが変化します。<br>バランス良く想いを言語化しましょう。</p>
+                    </div>
+                </div>
+
+                <!-- Summary Card -->
+                <div class="bg-navy-900 rounded-xl shadow p-6 text-white">
+                    <h3 class="text-lg font-bold text-gold-400 mb-3">NEXT ACTION</h3>
+                    <p class="text-sm text-slate-300 mb-4">入力が完了したら、ボタンを押して内容を出力してください。</p>
+                    <button onclick="app.generateReport()" class="w-full bg-gold-400 hover:bg-gold-500 text-navy-900 font-bold py-3 px-4 rounded shadow transition-all transform active:scale-95">
+                        <i class="fa-solid fa-clipboard-check mr-2"></i>回答内容を生成
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal for Report -->
+    <div id="reportModal" class="fixed inset-0 bg-navy-900 bg-opacity-80 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+            <div class="p-6 border-b border-slate-200 flex justify-between items-center bg-navy-50 rounded-t-xl">
+                <h3 class="text-xl font-bold text-navy-900"><i class="fa-solid fa-file-contract mr-2 text-gold-500"></i>ヒアリングシート回答一覧</h3>
+                <button onclick="app.closeModal()" class="text-slate-500 hover:text-navy-900 text-2xl">&times;</button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-grow bg-slate-50">
+                <pre id="reportContent" class="whitespace-pre-wrap font-sans text-sm text-slate-800 bg-white p-6 border rounded shadow-inner"></pre>
+            </div>
+            <div class="p-6 border-t border-slate-200 flex justify-end gap-4 bg-white rounded-b-xl">
+                <button onclick="app.closeModal()" class="px-4 py-2 text-slate-600 font-bold hover:bg-slate-100 rounded transition">閉じる</button>
+                <button onclick="app.copyToClipboard()" class="bg-navy-900 hover:bg-navy-800 text-white font-bold py-2 px-6 rounded shadow transition flex items-center">
+                    <i class="fa-regular fa-copy mr-2"></i>コピーする
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const app = {
+            chart: null,
+            data: {
+                issues: 0,
+                uniqueness: 0,
+                belief: 0,
+                customer: 0,
+                vision: 0
+            },
+            
+            init() {
+                this.initChart();
+                this.addEventListeners();
+                this.updateChart(); // Initial render
+            },
+
+            initChart() {
+                const ctx = document.getElementById('strategyChart').getContext('2d');
+                this.chart = new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['課題認識', '独自性(核)', '信念(Why)', '顧客理解', 'ビジョン'],
+                        datasets: [{
+                            label: '言語化レベル',
+                            data: [1, 1, 1, 1, 1], // Start with small visible polygon
+                            backgroundColor: 'rgba(212, 175, 55, 0.2)',
+                            borderColor: '#d4af37',
+                            pointBackgroundColor: '#0a192f',
+                            pointBorderColor: '#fff',
+                            borderWidth: 2,
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: '#d4af37'
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        scales: {
+                            r: {
+                                beginAtZero: true,
+                                max: 10,
+                                ticks: { display: false },
+                                pointLabels: {
+                                    font: { size: 12, family: "'Noto Sans JP', sans-serif", weight: 'bold' },
+                                    color: '#0f172a'
+                                },
+                                grid: { color: '#e2e8f0' },
+                                angleLines: { color: '#cbd5e1' }
+                            }
+                        },
+                        plugins: {
+                            legend: { display: false }
+                        }
+                    }
+                });
+            },
+
+            addEventListeners() {
+                // Text Inputs (Count characters)
+                const textInputs = document.querySelectorAll('input[type="text"], textarea');
+                textInputs.forEach(input => {
+                    input.addEventListener('input', () => this.updateChart());
+                });
+            },
+
+            updateChart() {
+                // Reset Scores
+                let scores = { issues: 0, uniqueness: 0, belief: 0, customer: 0, vision: 0 };
+                let totalProgress = 0;
+                let totalFields = 0;
+
+                // --- Calculate Scores based on input length and checkbox count ---
+
+                // 1. Issues (Challenge Checks + Trigger Text)
+                const checkedChallenges = document.querySelectorAll('#challengeChecks input:checked').length;
+                const triggerText = document.querySelector('textarea[data-category="issues"]')?.value.length || 0;
+                scores.issues = Math.min(10, (checkedChallenges * 1.5) + (triggerText > 10 ? 4 : 0) + (triggerText > 50 ? 3 : 0));
+                
+                // 2. Uniqueness (Core Value Texts)
+                const uniqueTexts = document.querySelectorAll('textarea[data-category="uniqueness"]');
+                let uniqueLen = 0;
+                uniqueTexts.forEach(el => uniqueLen += el.value.length);
+                scores.uniqueness = Math.min(10, (uniqueLen > 20 ? 3 : 0) + (uniqueLen > 100 ? 4 : 0) + (uniqueLen > 200 ? 3 : 0));
+
+                // 3. Belief (Why Texts)
+                const beliefTexts = document.querySelectorAll('textarea[data-category="belief"]');
+                let beliefLen = 0;
+                beliefTexts.forEach(el => beliefLen += el.value.length);
+                scores.belief = Math.min(10, (beliefLen > 20 ? 3 : 0) + (beliefLen > 100 ? 4 : 0) + (beliefLen > 200 ? 3 : 0));
+
+                // 4. Customer (Values + Customer Texts)
+                const custTexts = document.querySelectorAll('textarea[data-category="customer"]');
+                let custLen = 0;
+                custTexts.forEach(el => custLen += el.value.length);
+                scores.customer = Math.min(10, (custLen > 20 ? 3 : 0) + (custLen > 100 ? 4 : 0) + (custLen > 200 ? 3 : 0));
+
+                // 5. Vision (Hiring + Success Checks + Final)
+                const visionTexts = document.querySelectorAll('textarea[data-category="vision"]');
+                let visionLen = 0;
+                visionTexts.forEach(el => visionLen += el.value.length);
+                const checkedSuccess = document.querySelectorAll('#successChecks input:checked').length;
+                scores.vision = Math.min(10, (checkedSuccess * 1) + (visionLen > 20 ? 3 : 0) + (visionLen > 100 ? 3 : 0));
+
+                // Normalize for Chart (ensure minimum visibility)
+                const chartData = [
+                    Math.max(2, scores.issues),
+                    Math.max(2, scores.uniqueness),
+                    Math.max(2, scores.belief),
+                    Math.max(2, scores.customer),
+                    Math.max(2, scores.vision)
+                ];
+
+                // Update Chart
+                this.chart.data.datasets[0].data = chartData;
+                this.chart.update();
+
+                // Update Progress Bar
+                // Count filled text inputs
+                const allInputs = document.querySelectorAll('input[type="text"], textarea');
+                let filledInputs = 0;
+                allInputs.forEach(input => {
+                    if(input.value.trim().length > 0) filledInputs++;
+                });
+                // Count any checked group as "1 unit" of progress
+                const hasChallenge = checkedChallenges > 0 ? 1 : 0;
+                const hasSuccess = checkedSuccess > 0 ? 1 : 0;
+                
+                const maxScore = allInputs.length + 2; // inputs + 2 check groups
+                const currentScore = filledInputs + hasChallenge + hasSuccess;
+                const progressPercent = Math.min(100, Math.round((currentScore / maxScore) * 100));
+
+                document.getElementById('progressBar').style.width = `${progressPercent}%`;
+            },
+
+            generateReport() {
+                const getVal = (selector) => {
+                    const el = document.querySelector(selector);
+                    return el ? el.value.trim() || "(未入力)" : "(未入力)";
+                };
+                
+                const getChecks = (containerId) => {
+                    const checked = Array.from(document.querySelectorAll(`#${containerId} input:checked`)).map(cb => cb.value);
+                    return checked.length > 0 ? checked.join(", ") : "(選択なし)";
+                };
+
+                const report = `
+【動画戦略ヒアリングシート回答】
+作成日: ${new Date().toLocaleDateString()}
+
+■ 基本情報
+・会社名: ${getVal('input[placeholder="貴社名を入力"]')}
+・担当者: ${getVal('input[placeholder="お名前と役職"]')}
+・事業内容: ${getVal('input[placeholder="例：地域密着型の注文住宅の設計・施工"]')}
+・顧客層: ${getVal('input[placeholder="例：30代〜40代の子育て世帯・市内全域"]')}
+
+■ 課題認識
+・現在の課題: ${getChecks('challengeChecks')}
+・動画への興味きっかけ:
+${getVal('textarea[data-category="issues"]')}
+
+■ コア・バリュー（独自性）
+・他社より優れている点:
+${getVal('textarea[placeholder*="効率より丁寧さ"]')}
+・業界への違和感:
+${getVal('textarea[placeholder*="安売り競争"]')}
+
+■ 信念 (Why)
+・創業の理由:
+${getVal('textarea[placeholder*="創業のきっかけ"]')}
+・続ける理由:
+${getVal('textarea[placeholder*="お客様の笑顔"]')}
+
+■ 顧客への想い
+・譲れないこと:
+${document.querySelectorAll('textarea[data-category="customer"]')[0].value.trim() || "(未入力)"}
+・感じてほしいこと:
+${document.querySelectorAll('textarea[data-category="customer"]')[1].value.trim() || "(未入力)"}
+
+■ 顧客像
+・よくある悩み:
+${document.querySelectorAll('textarea[data-category="customer"]')[2].value.trim() || "(未入力)"}
+・合わない顧客像:
+${document.querySelectorAll('textarea[data-category="customer"]')[3].value.trim() || "(未入力)"}
+
+■ ビジョン・採用
+・採用で伝えたいこと:
+${document.querySelectorAll('textarea[data-category="vision"]')[0].value.trim() || "(未入力)"}
+・求める価値観:
+${document.querySelectorAll('textarea[data-category="vision"]')[1].value.trim() || "(未入力)"}
+
+■ 成功定義
+・理想の反応: ${getChecks('successChecks')}
+
+■ ラストメッセージ
+・一つだけ伝えるなら:
+${document.querySelectorAll('textarea[data-category="vision"]')[2].value.trim() || "(未入力)"}
+                `;
+
+                document.getElementById('reportContent').textContent = report.trim();
+                document.getElementById('reportModal').classList.remove('hidden');
+            },
+
+            closeModal() {
+                document.getElementById('reportModal').classList.add('hidden');
+            },
+
+            copyToClipboard() {
+                const text = document.getElementById('reportContent').textContent;
+                navigator.clipboard.writeText(text).then(() => {
+                    alert('回答内容をコピーしました！');
+                }).catch(err => {
+                    console.error('Copy failed', err);
+                    alert('コピーに失敗しました。手動でコピーしてください。');
+                });
+            }
+        };
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
+
+    </script>
+</body>
+</html>
